@@ -828,7 +828,7 @@ prompt_pure_setup() {
 		host                 242
 		path                 blue
 		prompt:error         red
-		prompt:success       magenta
+		prompt:success       yellow
 		prompt:continuation  242
 		suspended_jobs       red
 		user                 242

@@ -54,16 +54,6 @@ prompt_pure_check_cmd_exec_time() {
 }
 
 prompt_pure_preexec() {
-	if [[ -n $prompt_pure_git_fetch_pattern ]]; then
-		# Detect when Git is performing pull/fetch, including Git aliases.
-		local -H MATCH MBEGIN MEND match mbegin mend
-		if [[ $2 =~ (git|hub)\ (.*\ )?($prompt_pure_git_fetch_pattern)(\ .*)?$ ]]; then
-			# We must flush the async jobs to cancel our git fetch in order
-			# to avoid conflicts with the user issued pull / fetch.
-			async_flush_jobs 'prompt_pure'
-		fi
-	fi
-
 	typeset -g prompt_pure_cmd_timestamp=$EPOCHSECONDS
 
 	# Disallow Python virtualenv from updating the prompt. Set it to 12 if
@@ -215,26 +205,6 @@ prompt_pure_precmd() {
 	fi
 }
 
-prompt_pure_async_git_aliases() {
-	setopt localoptions noshwordsplit
-	local -a gitalias pullalias
-
-	# List all aliases and split on newline.
-	gitalias=(${(@f)"$(command git config --get-regexp "^alias\.")"})
-	for line in $gitalias; do
-		parts=(${(@)=line})           # Split line on spaces.
-		aliasname=${parts[1]#alias.}  # Grab the name (alias.[name]).
-		shift parts                   # Remove `aliasname`
-
-		# Check alias for pull or fetch. Must be exact match.
-		if [[ $parts =~ ^(.*\ )?(pull|fetch)(\ .*)?$ ]]; then
-			pullalias+=($aliasname)
-		fi
-	done
-
-	print -- ${(j:|:)pullalias}  # Join on pipe, for use in regex.
-}
-
 prompt_pure_async_vcs_info() {
 	setopt localoptions noshwordsplit
 
@@ -335,7 +305,6 @@ prompt_pure_async_tasks() {
 		unset prompt_pure_git_last_dirty_check_timestamp
 		unset prompt_pure_git_arrows
 		unset prompt_pure_git_stash
-		unset prompt_pure_git_fetch_pattern
 		prompt_pure_vcs_info[branch]=
 		prompt_pure_vcs_info[top]=
 	fi
@@ -351,13 +320,6 @@ prompt_pure_async_tasks() {
 
 prompt_pure_async_refresh() {
 	setopt localoptions noshwordsplit
-
-	if [[ -z $prompt_pure_git_fetch_pattern ]]; then
-		# We set the pattern here to avoid redoing the pattern check until the
-		# working tree has changed. Pull and fetch are always valid patterns.
-		typeset -g prompt_pure_git_fetch_pattern="pull|fetch"
-		async_job "prompt_pure" prompt_pure_async_git_aliases
-	fi
 
 	async_job "prompt_pure" prompt_pure_async_git_arrows
 
@@ -453,12 +415,6 @@ prompt_pure_async_callback() {
 			prompt_pure_vcs_info[action]=$info[action]
 
 			do_render=1
-			;;
-		prompt_pure_async_git_aliases)
-			if [[ -n $output ]]; then
-				# Append custom Git aliases to the predefined ones.
-				prompt_pure_git_fetch_pattern+="|$output"
-			fi
 			;;
 		prompt_pure_async_git_dirty)
 			local prev_dirty=$prompt_pure_git_dirty

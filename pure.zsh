@@ -55,11 +55,6 @@ prompt_pure_check_cmd_exec_time() {
 
 prompt_pure_preexec() {
 	typeset -g prompt_pure_cmd_timestamp=$EPOCHSECONDS
-
-	# Disallow Python virtualenv from updating the prompt. Set it to 12 if
-	# untouched by the user to indicate that Pure modified it. Here we use
-	# the magic number 12, same as in `psvar`.
-	export VIRTUAL_ENV_DISABLE_PROMPT=${VIRTUAL_ENV_DISABLE_PROMPT:-12}
 }
 
 # Change the colors if their value are different from the current ones.
@@ -168,29 +163,6 @@ prompt_pure_precmd() {
 
 	# Perform async Git dirty check and fetch.
 	prompt_pure_async_tasks
-
-	# Check if we should display the virtual env. We use a sufficiently high
-	# index of psvar (12) here to avoid collisions with user defined entries.
-	psvar[12]=
-	# Check if a Conda environment is active and display its name.
-	if [[ -n $CONDA_DEFAULT_ENV ]]; then
-		psvar[12]="${CONDA_DEFAULT_ENV//[$'\t\r\n']}"
-	fi
-	# When VIRTUAL_ENV_DISABLE_PROMPT is empty, it was unset by the user and
-	# Pure should take back control.
-	if [[ -n $VIRTUAL_ENV ]] && [[ -z $VIRTUAL_ENV_DISABLE_PROMPT || $VIRTUAL_ENV_DISABLE_PROMPT = 12 ]]; then
-		psvar[12]="${VIRTUAL_ENV:t}"
-		export VIRTUAL_ENV_DISABLE_PROMPT=12
-	fi
-
-	# Nix package manager integration. If used from within 'nix shell' - shell name is shown like so:
-	# ~/Projects/flake-utils-plus master
-	# flake-utils-plus ❯
-	if zstyle -T ":prompt:pure:environment:nix-shell" show; then
-		if [[ -n $IN_NIX_SHELL ]]; then
-			psvar[12]="${name:-nix-shell}"
-		fi
-	fi
 
 	# Make sure VIM prompt is reset.
 	prompt_pure_reset_prompt_symbol
@@ -601,8 +573,6 @@ prompt_pure_system_report() {
 	print - "- PROMPT: \`$(typeset -p PROMPT)\`"
 	print - "- Colors: \`$(typeset -p prompt_pure_colors)\`"
 	print - "- TERM: \`$(typeset -p TERM)\`"
-	print - "- Virtualenv: \`$(typeset -p VIRTUAL_ENV_DISABLE_PROMPT)\`"
-	print - "- Conda: \`$(typeset -p CONDA_CHANGEPS1)\`"
 
 	local ohmyzsh=0
 	typeset -la frameworks
@@ -672,7 +642,6 @@ prompt_pure_setup() {
 		suspended_jobs       red
 		user                 242
 		user:root            default
-		virtualenv           242
 	)
 	prompt_pure_colors=("${(@kv)prompt_pure_colors_default}")
 
@@ -725,10 +694,6 @@ prompt_pure_setup() {
 	# Improve the debug prompt (PS4), show depth by repeating the +-sign and
 	# add colors to highlight essential parts like file and function name.
 	PROMPT4="${ps4_parts[depth]} ${ps4_symbols}${ps4_parts[prompt]}"
-
-	# Guard against (ana)conda changing the PS1 prompt
-	# (we manually insert the env when it's available).
-	export CONDA_CHANGEPS1=no
 }
 
 prompt_pure_setup "$@"

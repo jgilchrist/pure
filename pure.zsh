@@ -197,12 +197,6 @@ prompt_pure_precmd() {
 
 	# Print the preprompt.
 	prompt_pure_preprompt_render "precmd"
-
-	if [[ -n $ZSH_THEME ]]; then
-		print "WARNING: Oh My Zsh themes are enabled (ZSH_THEME='${ZSH_THEME}'). Pure might not be working correctly."
-		print "For more information, see: https://github.com/sindresorhus/pure#oh-my-zsh"
-		unset ZSH_THEME  # Only show this warning once.
-	fi
 }
 
 prompt_pure_async_vcs_info() {
@@ -731,9 +725,6 @@ prompt_pure_setup() {
 	# Improve the debug prompt (PS4), show depth by repeating the +-sign and
 	# add colors to highlight essential parts like file and function name.
 	PROMPT4="${ps4_parts[depth]} ${ps4_symbols}${ps4_parts[prompt]}"
-
-	# Guard against Oh My Zsh themes overriding Pure.
-	unset ZSH_THEME
 
 	# Guard against (ana)conda changing the PS1 prompt
 	# (we manually insert the env when it's available).

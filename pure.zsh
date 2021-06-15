@@ -646,7 +646,8 @@ prompt_pure_setup() {
 	fi
 
 	# Display number of background jobs
-	PROMPT='%(1j.%F{black}[%j]%f .)'
+    # 8 = 'bright black'
+	PROMPT='%(1j.%F{8}[%j]%f .)'
 
 	# Prompt turns red if the previous command didn't exit with 0.
 	local prompt_indicator='%(?.%F{$prompt_pure_colors[prompt:success]}.%F{$prompt_pure_colors[prompt:error]})${prompt_pure_state[prompt]}%f '

@@ -639,7 +639,7 @@ prompt_pure_setup() {
 		prompt:error         red
 		prompt:success       yellow
 		prompt:continuation  242
-		suspended_jobs       red
+		suspended_jobs       242
 		user                 242
 		user:root            default
 	)

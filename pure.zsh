@@ -164,9 +164,6 @@ prompt_pure_precmd() {
 	# Perform async Git dirty check and fetch.
 	prompt_pure_async_tasks
 
-	# Make sure VIM prompt is reset.
-	prompt_pure_reset_prompt_symbol
-
 	# Print the preprompt.
 	prompt_pure_preprompt_render "precmd"
 }
@@ -462,21 +459,6 @@ prompt_pure_reset_prompt_symbol() {
 	prompt_pure_state[prompt]=${PURE_PROMPT_SYMBOL:-❯}
 }
 
-prompt_pure_update_vim_prompt_widget() {
-	setopt localoptions noshwordsplit
-	prompt_pure_state[prompt]=${${KEYMAP/vicmd/${PURE_PROMPT_VICMD_SYMBOL:-❮}}/(main|viins)/${PURE_PROMPT_SYMBOL:-❯}}
-
-	prompt_pure_reset_prompt
-}
-
-prompt_pure_reset_vim_prompt_widget() {
-	setopt localoptions noshwordsplit
-	prompt_pure_reset_prompt_symbol
-
-	# We can't perform a prompt reset at this point because it
-	# removes the prompt marks inserted by macOS Terminal.
-}
-
 prompt_pure_state_setup() {
 	setopt localoptions noshwordsplit
 
@@ -651,12 +633,6 @@ prompt_pure_setup() {
 	prompt_pure_state_setup
 
 	zle -N prompt_pure_reset_prompt
-	zle -N prompt_pure_update_vim_prompt_widget
-	zle -N prompt_pure_reset_vim_prompt_widget
-	if (( $+functions[add-zle-hook-widget] )); then
-		add-zle-hook-widget zle-line-finish prompt_pure_reset_vim_prompt_widget
-		add-zle-hook-widget zle-keymap-select prompt_pure_update_vim_prompt_widget
-	fi
 
 	# If a virtualenv is activated, display it in grey.
 	PROMPT='%(12V.%F{$prompt_pure_colors[virtualenv]}%12v%f .)'
